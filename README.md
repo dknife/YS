@@ -4,49 +4,62 @@
 
 **https://dknife.github.io/YS/**
 
+- `/` — 시 모음 (원고 사진 + 옮겨 적은 글)
+- `/book.html` — 자서전 「나의 이야기」, 한 장씩 넘겨 읽는 책
+
+디자인은 `DESIGN.md` (Sutera 스타일: 미니멀 흑백 + 오렌지 액센트 `#FA5D29`) 를 따릅니다.
+
 ## 구조
 
 ```
 YS/
-├─ index.html            # 페이지
+├─ index.html            # 시 모음
+├─ book.html             # 나의 이야기 (책)
 ├─ assets/
-│  ├─ style.css
-│  ├─ app.js
+│  ├─ style.css          # 공통 테마
+│  ├─ app.js             # 시 모음 동작
+│  ├─ book.css, book.js  # 책 동작
 │  ├─ thumbs/            # 목록용 축소 이미지 (긴 변 900px)
 │  └─ view/              # 상세보기용 이미지 (긴 변 2000px)
 ├─ data/
-│  └─ poems.json         # 글 목록과 분류
-└─ 시/
-   ├─ *.jpg              # 원본 사진
-   └─ *.txt              # 사진에서 옮겨 적은 글
+│  └─ poems.json         # 시 목록과 분류
+├─ 시/
+│  ├─ *.jpg              # 원고 사진
+│  └─ *.txt              # 사진에서 옮겨 적은 글
+└─ 나의 이야기/
+   └─ 할아버지이야기_텍스트.txt   # 책 본문 (그 외 원본 파일은 저장소에서 제외)
 ```
 
-## 글 고치기
+## 시 고치기 / 추가하기
 
-`시/<제목>.txt` 파일을 고치면 사이트에 그대로 반영됩니다.
-파일 첫 줄이 제목과 같으면 제목 줄로 표시되고, 나머지가 본문이 됩니다.
+`시/<제목>.txt` 를 고치면 사이트에 그대로 반영됩니다.
+첫 줄이 제목과 같으면 제목 줄로 표시되고 나머지가 본문이 됩니다.
 
-## 글 추가하기
+새 시를 추가하려면
 
-1. `시/` 폴더에 `<제목>.jpg` 와 `<제목>.txt` 를 넣습니다.
-2. 축소 이미지를 만듭니다 (아래 참고).
-3. `data/poems.json` 의 `poems` 배열에 `{ "name": "<제목>", "category": "가족" }` 을 추가합니다.
+1. `시/` 에 `<제목>.jpg` 와 `<제목>.txt` 를 넣습니다.
+2. `powershell -ExecutionPolicy Bypass -File tools\make-images.ps1` 로 축소 이미지를 만듭니다.
+   (EXIF 회전은 이미지에 직접 반영되고 태그는 제거됩니다.)
+3. `data/poems.json` 의 `poems` 에 `{ "name": "<제목>", "category": "가족" }` 을 추가합니다.
+   분류는 가족 / 기억 / 자연 / 황혼 중 하나입니다.
 
-분류는 `categories` 에 있는 값 중 하나를 씁니다: 가족, 기억, 자연, 황혼.
+## 책 본문 고치기
 
-### 축소 이미지 만들기 (Windows PowerShell)
+`나의 이야기/할아버지이야기_텍스트.txt` 한 파일이 책의 원본입니다. 표기 규칙은
 
-`tools/make-images.ps1` 을 실행하면 `시/` 안의 모든 jpg에 대해
-`assets/thumbs` 와 `assets/view` 를 다시 만듭니다.
-사진의 EXIF 회전 정보는 이미지에 직접 반영되고 태그는 제거됩니다.
+| 표기 | 뜻 |
+|------|-----|
+| `#3` | 3쪽 시작 |
+| `- 제목` | 제목 (표지) |
+| `-- 작은 제목` | 작은 제목 (장 표제지) |
+| 빈 줄 | 문단 구분 |
+| 두 칸 이상 들여쓴 줄 | 인용 (노랫말·시) |
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\make-images.ps1
-```
+제목/작은 제목만 있는 쪽은 표지·장 표제지로 자동 처리되고, 목차 버튼도 그 쪽들로 만들어집니다.
+쪽 번호를 바꾸거나 쪽을 추가해도 코드는 고칠 필요가 없습니다.
 
 ## 배포
 
-`main` 브랜치의 루트를 GitHub Pages 소스로 지정하면 됩니다.
-(저장소 Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`)
-
-`.nojekyll` 파일이 있어 Jekyll 처리 없이 그대로 게시됩니다.
+`main` 브랜치 루트를 GitHub Pages 소스로 씁니다.
+(Settings → Pages → Source: Deploy from a branch → `main` / `/ (root)`)
+`.nojekyll` 이 있어 Jekyll 처리 없이 그대로 게시됩니다.

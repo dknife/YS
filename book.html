@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>나의 이야기 — 용산 글모음</title>
+<meta name="description" content="강양수의 자서전 「나의 이야기」를 한 장씩 넘겨 읽습니다.">
+<meta name="theme-color" content="#F8F8F8">
+<meta property="og:title" content="나의 이야기 — 용산 글모음">
+<meta property="og:description" content="한 장씩 넘겨 읽는 자서전.">
+<meta property="og:type" content="article">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/book.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23222'/><rect x='7' y='9' width='18' height='2.5' fill='%23fff'/><rect x='7' y='15' width='18' height='2.5' fill='%23fff'/><rect x='7' y='21' width='11' height='2.5' fill='%23FA5D29'/></svg>">
+</head>
+<body class="book-page">
+
+<a class="skip-link" href="#stage">본문으로 건너뛰기</a>
+
+<header class="header stuck" id="header">
+  <div class="header-inner">
+    <a class="wordmark" href="index.html">용산 글모음<span class="dot"></span></a>
+    <nav class="nav" aria-label="주요">
+      <ul class="nav-list">
+        <li><a class="nav-link" href="index.html">시 모음</a></li>
+        <li><a class="nav-link is-current" href="book.html" aria-current="page">나의 이야기</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main class="book-main">
+  <div class="container book-head">
+    <div>
+      <p class="book-eyebrow">AUTOBIOGRAPHY</p>
+      <h1 class="book-heading">나의 이야기</h1>
+    </div>
+    <p class="book-byline">강양수</p>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="book" id="book" role="group" aria-label="책 본문" tabindex="0">
+      <div class="book-spread" id="spread"></div>
+    </div>
+  </div>
+
+  <div class="container controls">
+    <button class="turn" id="prev" aria-label="이전 장">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+
+    <div class="progress-wrap">
+      <div class="progress" role="progressbar" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" id="progress">
+        <span id="progress-bar"></span>
+      </div>
+      <p class="progress-label"><span id="page-label">1</span> / <span id="page-total">1</span></p>
+    </div>
+
+    <button class="turn" id="next" aria-label="다음 장">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+
+  <nav class="toc container" id="toc" aria-label="목차"></nav>
+</main>
+
+<footer class="footer">
+  <div class="container footer-inner">
+    <p class="footer-mark">용산 글모음</p>
+    <p class="footer-note">글 &copy; 강양수. 좌우 화살표 키로도 넘길 수 있습니다.</p>
+  </div>
+</footer>
+
+<script src="assets/book.js"></script>
+</body>
+</html>

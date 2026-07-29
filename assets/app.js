@@ -9,11 +9,18 @@
   var textCache = {};
 
   var el = {
+    header: document.getElementById('header'),
+    navList: document.getElementById('nav-list'),
+    panel: document.getElementById('panel'),
+    panelList: document.getElementById('panel-list'),
+    burger: document.getElementById('burger'),
     grid: document.getElementById('grid'),
     empty: document.getElementById('empty'),
-    filters: document.getElementById('filters'),
+    sectionTitle: document.getElementById('section-title'),
+    count: document.getElementById('count'),
     viewer: document.getElementById('viewer'),
     vTitle: document.getElementById('viewer-title'),
+    vCat: document.getElementById('viewer-cat'),
     vCount: document.getElementById('viewer-count'),
     vImg: document.getElementById('viewer-img'),
     vText: document.getElementById('viewer-text'),
@@ -49,9 +56,18 @@
   }
 
   function excerpt(body) {
-    var lines = body.split('\n').filter(function (l) { return l.trim(); });
-    return lines.slice(0, 2).join('\n');
+    return body.split('\n').filter(function (l) { return l.trim(); }).slice(0, 2).join('\n');
   }
+
+  /* ---------- 스크롤 등장 ---------- */
+
+  var io = ('IntersectionObserver' in window)
+    ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+        });
+      }, { rootMargin: '0px 0px -8% 0px', threshold: .08 })
+    : null;
 
   /* ---------- 목록 ---------- */
 
@@ -59,25 +75,30 @@
     var btn = document.createElement('button');
     btn.className = 'card';
     btn.type = 'button';
+    btn.style.transitionDelay = Math.min(i, 8) * 60 + 'ms';
 
-    var thumb = document.createElement('div');
-    thumb.className = 'card-thumb';
+    var media = document.createElement('div');
+    media.className = 'card-media';
+
+    var tag = document.createElement('span');
+    tag.className = 'card-tag';
+    tag.textContent = poem.category;
+
     var img = document.createElement('img');
     img.src = enc(THUMB_DIR + '/' + poem.name + '.jpg');
     img.alt = poem.name + ' 원고 사진';
     img.loading = 'lazy';
     img.decoding = 'async';
-    thumb.appendChild(img);
+
+    media.appendChild(tag);
+    media.appendChild(img);
 
     var body = document.createElement('div');
     body.className = 'card-body';
-    body.innerHTML =
-      '<span class="card-cat">' + poem.category + '</span>' +
-      '<h2 class="card-title"></h2>' +
-      '<p class="card-excerpt"></p>';
+    body.innerHTML = '<h3 class="card-title"></h3><p class="card-excerpt"></p>';
     body.querySelector('.card-title').textContent = poem.name;
 
-    btn.appendChild(thumb);
+    btn.appendChild(media);
     btn.appendChild(body);
     btn.addEventListener('click', function () { open(i); });
 
@@ -86,6 +107,7 @@
       body.querySelector('.card-excerpt').textContent = excerpt(splitTitle(poem.name, raw).body);
     });
 
+    if (io) io.observe(btn); else btn.classList.add('in');
     return btn;
   }
 
@@ -94,27 +116,79 @@
       ? state.poems.slice()
       : state.poems.filter(function (p) { return p.category === state.filter; });
 
+    el.sectionTitle.textContent = state.filter;
+    el.count.textContent = state.filtered.length;
+
     el.grid.innerHTML = '';
     state.filtered.forEach(function (p, i) { el.grid.appendChild(buildCard(p, i)); });
     el.empty.hidden = state.filtered.length > 0;
   }
 
+  function setFilter(cat) {
+    state.filter = cat;
+    [el.navList, el.panelList].forEach(function (list) {
+      Array.prototype.forEach.call(list.querySelectorAll('button'), function (b) {
+        b.setAttribute('aria-pressed', String(b.dataset.cat === cat));
+      });
+    });
+    render();
+    closePanel();
+  }
+
   function buildFilters(categories) {
     categories.forEach(function (cat) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.textContent = cat;
-      b.setAttribute('aria-pressed', String(cat === state.filter));
-      b.addEventListener('click', function () {
-        state.filter = cat;
-        Array.prototype.forEach.call(el.filters.children, function (c) {
-          c.setAttribute('aria-pressed', String(c === b));
-        });
-        render();
+      [el.navList, el.panelList].forEach(function (list) {
+        var li = document.createElement('li');
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.cat = cat;
+        b.textContent = cat;
+        b.setAttribute('aria-pressed', String(cat === state.filter));
+        b.addEventListener('click', function () { setFilter(cat); });
+        li.appendChild(b);
+        list.appendChild(li);
       });
-      el.filters.appendChild(b);
     });
+
+    // 모바일 패널에는 자서전 링크도 함께 둔다
+    var li = document.createElement('li');
+    li.className = 'panel-book';
+    var a = document.createElement('a');
+    a.href = 'book.html';
+    a.textContent = '나의 이야기';
+    li.appendChild(a);
+    el.panelList.appendChild(li);
   }
+
+  /* ---------- 헤더 / 패널 ---------- */
+
+  function onScroll() {
+    el.header.classList.toggle('stuck', window.scrollY > 40);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  function openPanel() {
+    el.panel.hidden = false;
+    requestAnimationFrame(function () { el.panel.classList.add('open'); });
+    el.burger.setAttribute('aria-expanded', 'true');
+    el.burger.setAttribute('aria-label', '메뉴 닫기');
+  }
+  function closePanel() {
+    el.panel.classList.remove('open');
+    el.burger.setAttribute('aria-expanded', 'false');
+    el.burger.setAttribute('aria-label', '메뉴 열기');
+    setTimeout(function () {
+      if (!el.panel.classList.contains('open')) el.panel.hidden = true;
+    }, 300);
+  }
+  el.burger.addEventListener('click', function () {
+    if (el.burger.getAttribute('aria-expanded') === 'true') closePanel(); else openPanel();
+  });
+  document.addEventListener('click', function (e) {
+    if (el.burger.getAttribute('aria-expanded') !== 'true') return;
+    if (!el.panel.contains(e.target) && !el.burger.contains(e.target)) closePanel();
+  });
 
   /* ---------- 뷰어 ---------- */
 
@@ -124,18 +198,16 @@
     var poem = state.filtered[i];
 
     el.vTitle.textContent = poem.name;
+    el.vCat.textContent = poem.category;
     el.vCount.textContent = (i + 1) + ' / ' + state.filtered.length;
     el.vImg.src = enc(VIEW_DIR + '/' + poem.name + '.jpg');
     el.vImg.alt = poem.name + ' 원고 사진';
     el.vOrig.href = enc(SRC_DIR + '/' + poem.name + '.jpg');
-    el.vText.innerHTML = '<span class="loading">글을 불러오는 중…</span>';
+    el.vText.innerHTML = '<span class="spinner" role="status" aria-label="불러오는 중"></span>';
 
     fetchText(poem.name).then(function (raw) {
       if (state.index !== i) return;
-      if (!raw) {
-        el.vText.textContent = '옮겨 적은 글이 아직 없습니다.';
-        return;
-      }
+      if (!raw) { el.vText.textContent = '옮겨 적은 글이 아직 없습니다.'; return; }
       var parts = splitTitle(poem.name, raw);
       el.vText.innerHTML = '';
       var h = document.createElement('span');
@@ -146,6 +218,7 @@
     });
 
     el.viewer.hidden = false;
+    el.viewer.scrollTop = 0;
     document.body.style.overflow = 'hidden';
     el.vClose.focus();
     if (history.replaceState) history.replaceState(null, '', '#' + encodeURIComponent(poem.name));
@@ -171,6 +244,7 @@
   el.viewer.addEventListener('click', function (e) { if (e.target === el.viewer) close(); });
 
   document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && el.burger.getAttribute('aria-expanded') === 'true') closePanel();
     if (el.viewer.hidden) return;
     if (e.key === 'Escape') close();
     else if (e.key === 'ArrowLeft') step(-1);
@@ -187,9 +261,10 @@
       render();
 
       var hash = decodeURIComponent((location.hash || '').slice(1));
-      if (hash) {
-        var i = state.filtered.findIndex(function (p) { return p.name === hash; });
-        if (i >= 0) open(i);
+      if (hash && hash !== 'top' && hash !== 'main') {
+        for (var i = 0; i < state.filtered.length; i++) {
+          if (state.filtered[i].name === hash) { open(i); break; }
+        }
       }
     })
     .catch(function () {
