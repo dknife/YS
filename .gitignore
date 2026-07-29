@@ -1,0 +1,9 @@
+# 아직 웹에 올리지 않는 작업 폴더 (pptx 원본이 커서 제외)
+나의 이야기/
+
+# OS / 편집기
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp

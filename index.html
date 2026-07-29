@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>용산 글모음</title>
+<meta name="description" content="손으로 눌러쓴 시와 글을 모아 둔 곳, 용산 글모음.">
+<meta property="og:title" content="용산 글모음">
+<meta property="og:description" content="손으로 눌러쓴 시와 글을 모아 둔 곳.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📜</text></svg>">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap">
+    <h1 class="site-title">용산 글모음</h1>
+    <p class="site-sub">손으로 눌러쓴 글들을 모아 둡니다</p>
+  </div>
+</header>
+
+<nav class="filters wrap" id="filters" aria-label="분류"></nav>
+
+<main class="wrap">
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>글이 없습니다.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>글·글씨 &copy; 용산. 옮겨 적은 글은 원본 사진과 다를 수 있습니다.</p>
+  </div>
+</footer>
+
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="viewer-title">
+  <button class="viewer-close" id="viewer-close" aria-label="닫기">&times;</button>
+  <button class="viewer-nav prev" id="viewer-prev" aria-label="이전 글">&#8249;</button>
+  <button class="viewer-nav next" id="viewer-next" aria-label="다음 글">&#8250;</button>
+
+  <div class="viewer-inner">
+    <div class="viewer-head">
+      <h2 id="viewer-title"></h2>
+      <span class="viewer-count" id="viewer-count"></span>
+    </div>
+
+    <div class="viewer-body">
+      <figure class="viewer-figure">
+        <img id="viewer-img" alt="">
+        <figcaption>
+          <a id="viewer-orig" href="#" target="_blank" rel="noopener">원본 사진 열기 &nearr;</a>
+        </figcaption>
+      </figure>
+      <article class="viewer-text" id="viewer-text"></article>
+    </div>
+  </div>
+</div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>
