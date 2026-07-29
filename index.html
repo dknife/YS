@@ -26,20 +26,14 @@
       용산 글모음<span class="dot"></span>
     </a>
 
-    <nav class="nav" id="nav" aria-label="분류">
-      <ul class="nav-list" id="nav-list"></ul>
+    <div class="header-right">
+      <nav class="nav nav-filters" id="nav" aria-label="분류">
+        <ul class="nav-list" id="nav-list"></ul>
+      </nav>
       <a class="nav-book" href="book.html">나의 이야기</a>
-    </nav>
-
-    <button class="burger" id="burger" aria-label="메뉴 열기" aria-expanded="false" aria-controls="panel">
-      <span></span><span></span><span></span>
-    </button>
+    </div>
   </div>
 </header>
-
-<div class="panel" id="panel" hidden>
-  <ul class="panel-list" id="panel-list"></ul>
-</div>
 
 <section class="hero" id="top">
   <div class="hero-media" aria-hidden="true"></div>
@@ -69,6 +63,9 @@
       <h2 class="section-title" id="section-title">전체</h2>
       <p class="section-meta"><span id="count">0</span> 편</p>
     </div>
+
+    <!-- 좁은 화면에서는 분류를 본문 위에 늘어놓는다 -->
+    <nav class="filters-inline" id="filters-inline" aria-label="분류"></nav>
 
     <div class="grid" id="grid"></div>
     <p class="empty" id="empty" hidden>글이 없습니다.</p>

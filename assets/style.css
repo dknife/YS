@@ -173,6 +173,12 @@ img { max-width: 100%; }
   background: var(--accent);
 }
 
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .nav-list {
   display: flex;
   align-items: center;
@@ -202,75 +208,45 @@ img { max-width: 100%; }
 .header.stuck .nav-list button:hover { background: var(--bg-2); color: var(--text); }
 .header.stuck .nav-list button[aria-pressed="true"] { background: var(--btn-bg); color: #fff; }
 
-.burger {
-  display: none;
-  width: 44px;
-  height: 44px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: transparent;
-  cursor: pointer;
-  padding: 12px 10px;
-  flex-direction: column;
-  justify-content: space-between;
-}
-.burger span {
-  display: block;
-  height: 2px;
-  background: #fff;
-  transition: var(--t);
-}
-.header.stuck .burger span { background: var(--text); }
-.burger[aria-expanded="true"] span { background: var(--text); }
-.burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(9px) rotate(45deg); }
-.burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
-.burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
-
-/* 슬라이드아웃 패널 */
-.panel {
-  position: fixed;
-  inset: 0 0 0 auto;
-  width: min(340px, 84vw);
-  z-index: 99;
-  background: var(--white);
-  box-shadow: var(--shadow-lg);
-  padding: calc(var(--header-h-sticky) + 24px) 28px 32px;
-  transform: translateX(100%);
-  transition: transform .3s var(--ease);
-}
-.panel[hidden] { display: block; visibility: hidden; }
-.panel.open { transform: translateX(0); visibility: visible; }
-
-.panel-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.panel-list button {
-  width: 100%;
-  height: 48px;
-  padding: 0 18px;
-  border: none;
-  border-radius: var(--r-sm);
-  background: var(--bg);
-  color: var(--text-2);
-  font: inherit;
-  font-size: 15px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  transition: var(--t);
-}
-.panel-list button[aria-pressed="true"] { background: var(--btn-bg); color: #fff; }
-
-.panel-book { margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(34, 34, 34, .1); }
-.panel-book a {
+.header-right {
   display: flex;
   align-items: center;
-  height: 48px;
+  gap: 4px;
+}
+
+/* 좁은 화면에서 본문 위에 놓이는 분류 줄 (가로 스크롤) */
+.filters-inline {
+  display: none;
+  gap: 8px;
+  margin: -18px 0 30px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.filters-inline::-webkit-scrollbar { display: none; }
+
+.filters-inline button {
+  flex: none;
+  height: 40px;
   padding: 0 18px;
+  border: 1px solid rgba(34, 34, 34, .14);
   border-radius: var(--r-sm);
-  background: var(--accent);
+  background: var(--white);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  scroll-snap-align: start;
+  transition: var(--t);
+}
+.filters-inline button[aria-pressed="true"] {
+  background: var(--btn-bg);
+  border-color: var(--btn-bg);
   color: #fff;
-  font-size: 15px;
-  font-weight: 600;
-  text-decoration: none;
 }
 
 /* ==========================================================================
@@ -546,6 +522,7 @@ main { padding: 72px 0 110px; }
   height: 40px;
   margin-left: 10px;
   padding: 0 16px;
+  background: transparent;
   border: 1px solid rgba(255, 255, 255, .32);
   border-radius: var(--r-sm);
   color: #fff;
@@ -728,8 +705,9 @@ main { padding: 72px 0 110px; }
 
 @media (max-width: 999px) {
   :root { --header-h: 76px; --header-h-sticky: 64px; }
-  .nav { display: none; }
-  .burger { display: flex; }
+  /* 분류는 헤더에서 빼고 본문 위 가로줄로 옮긴다 (책 링크는 헤더에 그대로 둔다) */
+  .nav-filters { display: none; }
+  .filters-inline { display: flex; }
   .hero-inner { padding-bottom: 140px; }
   .viewer-body { grid-template-columns: 1fr; }
   .viewer-figure { padding: 24px; }
@@ -742,6 +720,11 @@ main { padding: 72px 0 110px; }
 
 @media (max-width: 768px) {
   :root { --pad: 24px; }
+  /* 분류 줄은 화면 끝까지 흐르게 */
+  .filters-inline {
+    margin-inline: calc(var(--pad) * -1);
+    padding-inline: var(--pad);
+  }
   .shape-divider { height: 80px; }
   main { padding: 48px 0 80px; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 30px 16px; }

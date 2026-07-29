@@ -11,9 +11,7 @@
   var el = {
     header: document.getElementById('header'),
     navList: document.getElementById('nav-list'),
-    panel: document.getElementById('panel'),
-    panelList: document.getElementById('panel-list'),
-    burger: document.getElementById('burger'),
+    inlineList: document.getElementById('filters-inline'),
     grid: document.getElementById('grid'),
     empty: document.getElementById('empty'),
     sectionTitle: document.getElementById('section-title'),
@@ -126,69 +124,43 @@
 
   function setFilter(cat) {
     state.filter = cat;
-    [el.navList, el.panelList].forEach(function (list) {
+    [el.navList, el.inlineList].forEach(function (list) {
       Array.prototype.forEach.call(list.querySelectorAll('button'), function (b) {
         b.setAttribute('aria-pressed', String(b.dataset.cat === cat));
       });
     });
     render();
-    closePanel();
   }
 
   function buildFilters(categories) {
     categories.forEach(function (cat) {
-      [el.navList, el.panelList].forEach(function (list) {
-        var li = document.createElement('li');
+      // 헤더(넓은 화면)와 본문 위(좁은 화면) 양쪽에 같은 분류 단추를 둔다
+      [el.navList, el.inlineList].forEach(function (list) {
         var b = document.createElement('button');
         b.type = 'button';
         b.dataset.cat = cat;
         b.textContent = cat;
         b.setAttribute('aria-pressed', String(cat === state.filter));
         b.addEventListener('click', function () { setFilter(cat); });
-        li.appendChild(b);
-        list.appendChild(li);
+
+        if (list === el.navList) {
+          var li = document.createElement('li');
+          li.appendChild(b);
+          list.appendChild(li);
+        } else {
+          list.appendChild(b);
+        }
       });
     });
-
-    // 모바일 패널에는 자서전 링크도 함께 둔다
-    var li = document.createElement('li');
-    li.className = 'panel-book';
-    var a = document.createElement('a');
-    a.href = 'book.html';
-    a.textContent = '나의 이야기';
-    li.appendChild(a);
-    el.panelList.appendChild(li);
   }
 
-  /* ---------- 헤더 / 패널 ---------- */
+  /* ---------- 헤더 ---------- */
 
   function onScroll() {
     el.header.classList.toggle('stuck', window.scrollY > 40);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
-
-  function openPanel() {
-    el.panel.hidden = false;
-    requestAnimationFrame(function () { el.panel.classList.add('open'); });
-    el.burger.setAttribute('aria-expanded', 'true');
-    el.burger.setAttribute('aria-label', '메뉴 닫기');
-  }
-  function closePanel() {
-    el.panel.classList.remove('open');
-    el.burger.setAttribute('aria-expanded', 'false');
-    el.burger.setAttribute('aria-label', '메뉴 열기');
-    setTimeout(function () {
-      if (!el.panel.classList.contains('open')) el.panel.hidden = true;
-    }, 300);
-  }
-  el.burger.addEventListener('click', function () {
-    if (el.burger.getAttribute('aria-expanded') === 'true') closePanel(); else openPanel();
-  });
-  document.addEventListener('click', function (e) {
-    if (el.burger.getAttribute('aria-expanded') !== 'true') return;
-    if (!el.panel.contains(e.target) && !el.burger.contains(e.target)) closePanel();
-  });
 
   /* ---------- 뷰어 ---------- */
 
@@ -244,7 +216,6 @@
   el.viewer.addEventListener('click', function (e) { if (e.target === el.viewer) close(); });
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && el.burger.getAttribute('aria-expanded') === 'true') closePanel();
     if (el.viewer.hidden) return;
     if (e.key === 'Escape') close();
     else if (e.key === 'ArrowLeft') step(-1);
