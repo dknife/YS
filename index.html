@@ -94,9 +94,6 @@
 </footer>
 
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-labelledby="viewer-title">
-  <button class="ctrl ctrl-close" id="viewer-close" aria-label="닫기">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
-  </button>
   <button class="ctrl ctrl-prev" id="viewer-prev" aria-label="이전 글">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
   </button>
@@ -115,12 +112,16 @@
 
     <div class="viewer-body">
       <figure class="viewer-figure">
+        <button class="btn-close" id="viewer-close" type="button">닫기</button>
         <img id="viewer-img" alt="">
         <figcaption>
           <a class="link-accent" id="viewer-orig" href="#" target="_blank" rel="noopener">원본 사진 열기</a>
         </figcaption>
       </figure>
-      <article class="viewer-text" id="viewer-text"></article>
+      <div class="viewer-side">
+        <article class="viewer-text" id="viewer-text"></article>
+        <button class="btn-close" id="viewer-close-end" type="button">닫기</button>
+      </div>
     </div>
   </div>
 </div>

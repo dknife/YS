@@ -7,8 +7,6 @@
 
   var el = {
     pages: document.getElementById('pages'),
-    prev: document.getElementById('prev'),
-    next: document.getElementById('next'),
     bar: document.getElementById('progress-bar'),
     progress: document.getElementById('progress'),
     label: document.getElementById('page-label'),
@@ -19,7 +17,13 @@
   var pages = [];      // [{ no, kind, blocks:[{type,text}] }]
   var views = [];      // 쪽마다 만들어 둔 DOM
   var art = [];        // art[i] = 그 쪽 그림 <img>
+  var turns = [];      // turns[i] = { prev, next } 그 쪽의 넘김 버튼
   var cur = 0;         // 지금 보고 있는 쪽 (0부터)
+
+  var ARROW = {
+    prev: 'M15 5l-7 7 7 7',
+    next: 'M9 5l7 7-7 7'
+  };
 
   function pad3(n) { return ('00' + n).slice(-3); }
 
@@ -89,6 +93,30 @@
      2쪽부터는 왼쪽에 그림 오른쪽에 그 쪽의 글 (좁은 화면에서는 위아래로)
   --------------------------------------------------------------- */
 
+  // 넘김 버튼은 쪽마다 하나씩 만들어 그림 왼쪽 아래 / 글 오른쪽 아래에 붙인다
+  function turnEl(dir) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'turn turn-' + dir;
+    b.setAttribute('aria-label', dir === 'prev' ? '이전 쪽' : '다음 쪽');
+
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('aria-hidden', 'true');
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', ARROW[dir]);
+    svg.appendChild(path);
+
+    var label = document.createElement('span');
+    label.textContent = dir === 'prev' ? '이전' : '다음';
+
+    if (dir === 'prev') { b.appendChild(svg); b.appendChild(label); }
+    else { b.appendChild(label); b.appendChild(svg); }
+
+    b.addEventListener('click', function () { step(dir === 'prev' ? -1 : 1); });
+    return b;
+  }
+
   function artEl(i) {
     var wrap = document.createElement('div');
     wrap.className = 'page-art';
@@ -143,8 +171,18 @@
     pages.forEach(function (page, i) {
       var view = document.createElement('article');
       view.className = 'page is-' + page.kind;
-      view.appendChild(artEl(i));
-      view.appendChild(textEl(page));
+
+      var artBox = artEl(i);
+      var textBox = textEl(page);
+
+      var prev = turnEl('prev');
+      var next = turnEl('next');
+      artBox.appendChild(prev);      // 그림 왼쪽 아래
+      textBox.appendChild(next);     // 글 오른쪽 아래
+      turns[i] = { prev: prev, next: next };
+
+      view.appendChild(artBox);
+      view.appendChild(textBox);
       el.pages.appendChild(view);
       views.push(view);
     });
@@ -193,8 +231,10 @@
     el.bar.style.width = ((cur + 1) / pages.length * 100) + '%';
     el.progress.setAttribute('aria-valuenow', String(cur + 1));
 
-    el.prev.disabled = cur === 0;
-    el.next.disabled = cur >= pages.length - 1;
+    turns.forEach(function (t) {
+      t.prev.disabled = cur === 0;
+      t.next.disabled = cur >= pages.length - 1;
+    });
 
     Array.prototype.forEach.call(el.toc.children, function (b) {
       b.setAttribute('aria-current', String(parseInt(b.dataset.page, 10) === cur));
@@ -218,9 +258,6 @@
   }
 
   /* ---------- 조작 ---------- */
-
-  el.prev.addEventListener('click', function () { step(-1); });
-  el.next.addEventListener('click', function () { step(1); });
 
   document.addEventListener('keydown', function (e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;

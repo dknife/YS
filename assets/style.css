@@ -636,8 +636,35 @@ main { padding: 72px 0 110px; }
 
 .viewer-figure figcaption { margin-top: 18px; text-align: center; font-size: 13px; }
 
+.viewer-side { display: flex; flex-direction: column; }
+
+/* 글 앞뒤로 놓이는 닫기 버튼 */
+.btn-close {
+  align-self: flex-start;
+  height: 40px;
+  padding: 0 20px;
+  border: 1px solid rgba(34, 34, 34, .18);
+  border-radius: var(--r-sm);
+  background: var(--white);
+  color: var(--text-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--t);
+}
+.btn-close:hover { border-color: var(--accent); color: var(--accent); }
+
+.viewer-figure .btn-close { margin-bottom: 22px; }
+
+.viewer-side .btn-close {
+  align-self: flex-end;
+  margin: 0 44px 44px;
+}
+
 .viewer-text {
-  padding: 40px 44px 52px;
+  flex: 1;
+  padding: 40px 44px 32px;
   white-space: pre-wrap;
   font-size: 16px;
   font-weight: 300;
@@ -691,7 +718,6 @@ main { padding: 72px 0 110px; }
 .ctrl:hover { background: rgba(255, 255, 255, .3); }
 .ctrl svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-.ctrl-close { top: 24px; right: 24px; }
 .ctrl-prev  { top: 50%; left: 24px;  transform: translateY(-50%); }
 .ctrl-next  { top: 50%; right: 24px; transform: translateY(-50%); }
 
@@ -712,10 +738,10 @@ main { padding: 72px 0 110px; }
   .viewer-body { grid-template-columns: 1fr; }
   .viewer-figure { padding: 24px; }
   .viewer-head { padding: 26px 26px 22px; }
-  .viewer-text { padding: 30px 26px 40px; }
+  .viewer-text { padding: 30px 26px 26px; }
+  .viewer-side .btn-close { margin: 0 26px 32px; }
   .ctrl-prev { left: 12px; }
   .ctrl-next { right: 12px; }
-  .ctrl-close { top: 16px; right: 16px; }
 }
 
 @media (max-width: 768px) {

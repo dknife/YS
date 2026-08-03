@@ -97,12 +97,15 @@
 /* ---------- 글 ---------- */
 
 .page-text {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--white);
   border-radius: var(--r-lg);
   box-shadow: 0 10px 34px rgba(0, 0, 0, .08);
   padding: clamp(28px, 3.4vw, 46px) clamp(24px, 3.2vw, 44px);
+  /* 오른쪽 아래 '다음' 버튼 자리 */
+  padding-bottom: 76px;
 }
 
 /* 글이 짧으면 가운데에, 길면 위에서부터 */
@@ -133,10 +136,11 @@
   line-height: 1.95;
 }
 
+/* 쪽 번호는 '다음' 버튼과 부딪히지 않게 왼쪽 아래에 둔다 */
 .page-no {
   flex: none;
   margin: 28px 0 0 !important;
-  text-align: right;
+  text-align: left;
   font-size: 12px !important;
   color: #b3aca6 !important;
   letter-spacing: .08em;
@@ -218,22 +222,34 @@
   margin-top: 40px;
 }
 
+/* 넘김 버튼 — 그림 왼쪽 아래, 글 오른쪽 아래 */
+
 .turn {
-  flex: none;
-  width: 48px;
-  height: 48px;
+  position: absolute;
+  bottom: 16px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 18px;
   border: none;
   border-radius: var(--r-sm);
   background: var(--btn-bg);
   color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  display: grid;
-  place-items: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .22);
   transition: background .3s ease, opacity .3s ease;
 }
 .turn:hover:not(:disabled) { background: var(--btn-bg-hover); }
-.turn:disabled { opacity: .28; cursor: default; }
-.turn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.turn:disabled { opacity: 0; pointer-events: none; }
+.turn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.turn-prev { left: 16px; }
+.turn-next { right: 16px; }
 
 .progress-wrap { width: min(420px, 52vw); }
 

@@ -24,6 +24,7 @@
     vText: document.getElementById('viewer-text'),
     vOrig: document.getElementById('viewer-orig'),
     vClose: document.getElementById('viewer-close'),
+    vCloseEnd: document.getElementById('viewer-close-end'),
     vPrev: document.getElementById('viewer-prev'),
     vNext: document.getElementById('viewer-next')
   };
@@ -210,7 +211,9 @@
     open(n);
   }
 
+  // 닫기 버튼은 그림 앞과 글 끝에 하나씩 있다
   el.vClose.addEventListener('click', close);
+  el.vCloseEnd.addEventListener('click', close);
   el.vPrev.addEventListener('click', function () { step(-1); });
   el.vNext.addEventListener('click', function () { step(1); });
   el.viewer.addEventListener('click', function (e) { if (e.target === el.viewer) close(); });
