@@ -17,6 +17,7 @@ import json
 import re
 import shutil
 import sys
+import unicodedata
 from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent.parent   # 저장소 뿌리
@@ -215,6 +216,68 @@ def poem_size(body: str):
     return SIZE_FLOOR
 
 
+# ---- 두 단으로 앉히기 ----------------------------------------------
+# 글이 많아 글자를 줄여야 하는 시는 두 단으로 나누면 글자를 키울 수 있다.
+# 다만 시행이 길면 좁은 단에서 줄이 접히므로, 두 단이 정말 이로울 때만 쓴다.
+
+COL_PT = 215.0          # 한 단의 폭 (0.47 x 162mm)
+STAGGER_PT = 34.0       # 오른쪽 단을 내려 앉히는 만큼 (12mm)
+TWOCOL_SIZES = [(13.0, 22.0), (12.5, 20.5), (12.0, 19.0), (11.5, 18.0), (11.0, 17.0)]
+
+
+def line_width_em(s: str) -> float:
+    """한 줄의 폭을 글자 수로 어림한다. 한글·한자는 한 칸, 나머지는 반 칸."""
+    return sum(1.0 if unicodedata.east_asian_width(c) in ("W", "F") else 0.5 for c in s)
+
+
+def twocol_size(body: str):
+    """두 단으로 앉힐 때 쓸 수 있는 가장 큰 글자. 이로울 게 없으면 None."""
+    lines = [l.strip() for l in body.split("\n") if l.strip()]
+    if not lines:
+        return None
+    widest = max(line_width_em(l) for l in lines)
+    units = poem_units(body)
+
+    for size, lead in TWOCOL_SIZES:
+        if size * widest > COL_PT:                 # 시행이 단 폭을 넘으면 접힌다
+            continue
+        capacity = (AVAILABLE_PT + AVAILABLE_PT - STAGGER_PT) / lead
+        if units <= capacity:
+            return size, lead
+    return None
+
+
+def split_stanzas(body: str, lead: float):
+    """두 단에 나눠 담는다. 오른쪽 단이 내려 앉은 만큼 왼쪽에 조금 더 담아
+    두 단이 비슷한 높이에서 끝나게 한다."""
+    stanzas = [b.strip() for b in re.split(r"\n\s*\n", body) if b.strip()]
+    if len(stanzas) < 2:
+        return None
+
+    def units_of(group):
+        text = "\n\n".join(group)
+        return poem_units(text) if group else 0.0
+
+    stagger_units = STAGGER_PT / lead
+    best, best_gap = 1, None
+    for cut in range(1, len(stanzas)):
+        gap = abs(units_of(stanzas[:cut]) - units_of(stanzas[cut:]) - stagger_units)
+        if best_gap is None or gap < best_gap:
+            best, best_gap = cut, gap
+    return stanzas[:best], stanzas[best:]
+
+
+def stanzas_tex(blocks) -> str:
+    out = []
+    for block in blocks:
+        lines = [l.strip() for l in block.split("\n") if l.strip()]
+        if not lines:
+            continue
+        out.append(" \\\\\n".join(tex(l) for l in lines))
+        out.append("")
+    return "\n".join(out).rstrip()
+
+
 def write_poems(data) -> int:
     poem_img.mkdir(parents=True, exist_ok=True)
     out = ["%% 자동 생성 — latex/tools/make-tex.py 가 만든다. 직접 고치지 말 것.", ""]
@@ -223,6 +286,7 @@ def write_poems(data) -> int:
     order = [c for c in data.get("categories", []) if c != "전체"]
     poems = data["poems"]
     count = 0
+    twocol = []
 
     for cat in order:
         group = [p for p in poems if p.get("category") == cat]
@@ -252,17 +316,28 @@ def write_poems(data) -> int:
             else:
                 out.append(f"\\yspoemplateonly{{{tex(name)}}}{{{tex(cat)}}}{{{color}}}")
             size, lead = poem_size(body)
-            out.append(f"\\begin{{poembody}}{{{size}}}{{{lead}}}")
-            for block in re.split(r"\n\s*\n", body):
-                lines = [l.strip() for l in block.split("\n") if l.strip()]
-                if not lines:
-                    continue
-                out.append(" \\\\\n".join(tex(l) for l in lines))
-                out.append("")
-            out.append("\\end{poembody}")
+
+            # 글자를 줄여야 하는 시는 두 단으로 나눠 키울 수 있는지 본다
+            wide = twocol_size(body) if size < SIZE_LADDER[0][1] else None
+            halves = split_stanzas(body, wide[1]) if wide else None
+
+            if wide and halves and wide[0] > size:
+                left, right = halves
+                out.append(f"\\yspoemcols{{{wide[0]}}}{{{wide[1]}}}{{%")
+                out.append(stanzas_tex(left))
+                out.append("}{%")
+                out.append(stanzas_tex(right))
+                out.append("}")
+                twocol.append((name, size, wide[0]))
+            else:
+                out.append(f"\\begin{{poembody}}{{{size}}}{{{lead}}}")
+                out.append(stanzas_tex(re.split(r"\n\s*\n", body)))
+                out.append("\\end{poembody}")
             out.append("")
 
     gen.joinpath("poems.tex").write_text("\n".join(out), encoding="utf-8")
+    for name, before, after in twocol:
+        print(f"  두 단으로: {name} ({before}pt -> {after}pt)")
     return count
 
 

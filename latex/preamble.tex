@@ -355,6 +355,27 @@
 }
 
 %% 시 본문 — 글자 크기와 줄간격은 시의 길이에 맞춰 정해진다 (make-tex.py 가 고른다)
+%% ----- 두 단으로 앉히는 긴 시 -----
+%% 글이 많아 한 단으로는 글자를 줄여야 하는 시는 두 단으로 나눠 글자를 키운다.
+%% 왼쪽 단은 제목 아래에서 바로 시작하고 오른쪽 단은 조금 내려 앉혀,
+%% 눈이 왼쪽 위에서 오른쪽 아래로 자연스럽게 흐르게 한다.
+\newlength{\ysstagger}
+\setlength{\ysstagger}{12mm}
+
+\newcommand{\yspoemcols}[4]{% {글자크기}{줄간격}{왼쪽 단}{오른쪽 단}
+  \begingroup
+    \bookserifhangul\fontsize{#1}{#2}\selectfont\RaggedRight
+    \vspace*{\dimexpr\ysheadgap-\baselineskip-\topskip\relax}%
+    \noindent
+    \begin{minipage}[t]{0.47\linewidth}%
+      \setlength{\parskip}{0.75em}#3%
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.47\linewidth}%
+      \setlength{\parskip}{0.75em}\vspace*{\ysstagger}#4%
+    \end{minipage}%
+  \endgroup
+}
+
 \newenvironment{poembody}[2]
   {\begingroup
    \bookserifhangul\fontsize{#1}{#2}\selectfont\RaggedRight
