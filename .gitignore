@@ -19,3 +19,7 @@ latex/*.bak
 latex/build.log
 latex/generated/
 latex/images/
+
+# 파이썬이 남기는 찌꺼기
+__pycache__/
+*.pyc
