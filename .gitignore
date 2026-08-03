@@ -9,3 +9,13 @@ ehthumbs.db
 Desktop.ini
 .DS_Store
 *.swp
+
+# LaTeX 책 — 만들어지는 파일들
+latex/*.aux
+latex/*.log
+latex/*.out
+latex/*.toc
+latex/*.bak
+latex/build.log
+latex/generated/
+latex/images/

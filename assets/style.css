@@ -634,8 +634,6 @@ main { padding: 72px 0 110px; }
   background: #fff;
 }
 
-.viewer-figure figcaption { margin-top: 18px; text-align: center; font-size: 13px; }
-
 .viewer-side { display: flex; flex-direction: column; }
 
 /* 글 앞뒤로 놓이는 닫기 버튼 */

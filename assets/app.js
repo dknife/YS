@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var SRC_DIR = '시';            // 원본 사진과 옮겨 적은 글(.txt)이 있는 폴더
+  var SRC_DIR = '시';            // 옮겨 적은 글(.txt)이 있는 폴더
   var THUMB_DIR = 'assets/thumbs';
   var VIEW_DIR = 'assets/view';
 
@@ -22,7 +22,6 @@
     vCount: document.getElementById('viewer-count'),
     vImg: document.getElementById('viewer-img'),
     vText: document.getElementById('viewer-text'),
-    vOrig: document.getElementById('viewer-orig'),
     vClose: document.getElementById('viewer-close'),
     vCloseEnd: document.getElementById('viewer-close-end'),
     vPrev: document.getElementById('viewer-prev'),
@@ -175,7 +174,6 @@
     el.vCount.textContent = (i + 1) + ' / ' + state.filtered.length;
     el.vImg.src = enc(VIEW_DIR + '/' + poem.name + '.jpg');
     el.vImg.alt = poem.name + ' 원고 사진';
-    el.vOrig.href = enc(SRC_DIR + '/' + poem.name + '.jpg');
     el.vText.innerHTML = '<span class="spinner" role="status" aria-label="불러오는 중"></span>';
 
     fetchText(poem.name).then(function (raw) {

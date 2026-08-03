@@ -1,0 +1,106 @@
+%% ============================================================
+%% main.tex — 용산 글모음
+%% 시와 자서전을 한 권에 담은 그림책
+%%
+%%   sh build.sh          (또는)   xelatex main.tex  을 두 번
+%% ============================================================
+\documentclass[11pt, twoside, openright]{book}
+
+\input{preamble}
+
+\begin{document}
+
+%% ===========================================================
+%% 앞표지 — 그림을 종이 끝까지 채우고 제목 판을 얹는다
+%% ===========================================================
+\pagestyle{ysplain}
+\yscoverpage{손으로 눌러쓴 시와 글}{용산 글모음}{강양수}
+
+%% ===========================================================
+%% 여는 글
+%% ===========================================================
+\thispagestyle{ysplain}
+\begingroup
+  \vspace*{16mm}
+  {\sffamily\bfseries\fontsize{20}{26}\selectfont\color{ysink} 이 책에 대하여\par}
+  \vspace{3mm}
+  {\color{ysorange}\rule{20mm}{1.4pt}\par}
+  \vspace{9mm}
+
+  \fontsize{12.5}{22}\selectfont\RaggedRight
+  이 책은 강양수 님이 손으로 눌러쓴 글을 모아 엮은 것입니다.
+
+  앞쪽에는 자서전 「나의 이야기」를 담았습니다. 다섯 살 아이가 낙동강가 마을에서
+  전쟁을 만나던 날부터, 여든을 넘긴 오늘 도서관과 서예실에서 보내는 하루까지
+  한 사람의 한평생이 서른세 쪽에 담겨 있습니다. 쪽마다 그림을 곁들여
+  아이도 함께 넘겨 볼 수 있게 했습니다.
+
+  뒤쪽에는 시 스물두 편을 실었습니다. 눌러쓴 원고를 사진 그대로 올리고,
+  그 아래에 옮겨 적은 글을 나란히 두었습니다. 글씨의 힘과 떨림이 글과 함께
+  읽히기를 바랐습니다.
+
+  \vspace{7mm}
+  {\color{yssoft}\rule{\linewidth}{0.4pt}\par}
+  \vspace{5mm}
+  {\fontsize{11}{18}\selectfont\color{yssoft}
+   이 책의 모든 글은 \texttt{dknife.github.io/YS} 에서도 읽을 수 있습니다.\par}
+\endgroup
+\clearpage
+
+%% ===========================================================
+%% 차례
+%% ===========================================================
+\thispagestyle{ysplain}
+\begingroup
+  \vspace*{12mm}
+  {\sffamily\bfseries\fontsize{20}{26}\selectfont\color{ysink} 차례\par}
+  \vspace{3mm}
+  {\color{ysorange}\rule{20mm}{1.4pt}\par}
+  \vspace{7mm}
+  \setcounter{tocdepth}{2}
+  \begingroup
+    \setlength{\parskip}{0pt}
+    \small
+    \makeatletter\@starttoc{toc}\makeatother
+  \endgroup
+\endgroup
+\clearpage
+
+%% ===========================================================
+%% 1부 — 나의 이야기
+%% ===========================================================
+\clearpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\pagestyle{ysmain}
+
+\yspart{하나}{나의 이야기}{하나. 나의 이야기}
+
+\input{generated/story}
+
+%% ===========================================================
+%% 2부 — 시 모음
+%% ===========================================================
+\yspart{둘}{시 모음}{둘. 시 모음}
+
+\input{generated/poems}
+
+%% ===========================================================
+%% 닫는 쪽
+%% ===========================================================
+\clearpage
+\thispagestyle{ysplain}
+\begingroup
+  \centering
+  \vspace*{58mm}
+  {\color{ysorange}\rule{26mm}{1.6pt}\par}
+  \vspace{9mm}
+  {\sffamily\bfseries\fontsize{22}{28}\selectfont\color{ysink} 용산 글모음\par}
+  \vspace{5mm}
+  {\fontsize{12}{20}\selectfont\color{yssoft}
+   글·글씨 \textcopyright\ 강양수\par
+   \vspace{2mm}
+   그림은 글에 맞추어 새로 그렸습니다.\par}
+\endgroup
+
+\end{document}
