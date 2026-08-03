@@ -4,6 +4,7 @@
   var SRC = '나의 이야기/할아버지이야기_텍스트.txt';
   var ART = 'assets/book/';
   var PRELOAD = 2;           // 지금 쪽 앞뒤로 미리 받아 둘 그림 수
+  var HEAD_GAP = 88;         // 쪽 위로 되돌아갈 때 고정 머리말에 가리지 않을 만큼 띄우기
 
   var el = {
     pages: document.getElementById('pages'),
@@ -244,17 +245,33 @@
     if (history.replaceState) history.replaceState(null, '', '#p' + (cur + 1));
   }
 
+  // 쪽을 넘기면 그림을 위에서부터 볼 수 있게 스크롤을 되돌린다.
+  // (이미 그 위쪽을 보고 있으면 굳이 내리지 않는다)
+  function scrollToTop() {
+    var top = el.pages.getBoundingClientRect().top + window.pageYOffset;
+    var target = Math.max(0, top - HEAD_GAP);
+    if (window.pageYOffset <= target + 1) return;
+
+    var soft = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try {
+      window.scrollTo({ top: target, behavior: soft ? 'smooth' : 'auto' });
+    } catch (e) {
+      window.scrollTo(0, target);   // 옛 브라우저
+    }
+  }
+
   function step(d) {
     var next = Math.max(0, Math.min(pages.length - 1, cur + d));
     if (next === cur) return;
     cur = next;
     apply();
+    scrollToTop();
   }
 
   function goToPage(i) {
     cur = Math.max(0, Math.min(pages.length - 1, i));
     apply();
-    el.pages.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    scrollToTop();
   }
 
   /* ---------- 조작 ---------- */
