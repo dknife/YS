@@ -2,11 +2,11 @@
   'use strict';
 
   var SRC = '나의 이야기/할아버지이야기_텍스트.txt';
-  var MOBILE = '(max-width: 860px)';
+  var ART = 'assets/book/';
+  var PRELOAD = 2;           // 지금 쪽 앞뒤로 미리 받아 둘 그림 수
 
   var el = {
-    spread: document.getElementById('spread'),
-    book: document.getElementById('book'),
+    pages: document.getElementById('pages'),
     prev: document.getElementById('prev'),
     next: document.getElementById('next'),
     bar: document.getElementById('progress-bar'),
@@ -16,20 +16,20 @@
     toc: document.getElementById('toc')
   };
 
-  var pages = [];     // [{ no, kind, blocks:[{type,text}] }]
-  var sheets = [];    // DOM
-  var sheetCount = 0;
-  var turned = 0;     // 넘긴 장 수 (데스크톱)
-  var mPage = 0;      // 모바일에서 보고 있는 지면 인덱스
+  var pages = [];      // [{ no, kind, blocks:[{type,text}] }]
+  var views = [];      // 쪽마다 만들어 둔 DOM
+  var art = [];        // art[i] = 그 쪽 그림 <img>
+  var cur = 0;         // 지금 보고 있는 쪽 (0부터)
 
-  function isMobile() { return window.matchMedia(MOBILE).matches; }
+  function pad3(n) { return ('00' + n).slice(-3); }
 
   /* ---------- 파서 ----------
-     #n   : 새 지면
+     #n   : 새 쪽
      -    : 제목
      --   : 작은 제목
      들여쓴 줄 : 인용(시)
      빈 줄  : 문단 구분
+     쪽 번호 n 에는 assets/book/00n.jpg 그림이 따라붙는다
   --------------------------------------------------------------- */
 
   function parse(raw) {
@@ -84,22 +84,37 @@
     return out;
   }
 
-  /* ---------- 지면 만들기 ---------- */
+  /* ---------- 쪽 만들기 ----------
+     1쪽은 그림 위에 제목을 얹은 표지,
+     2쪽부터는 왼쪽에 그림 오른쪽에 그 쪽의 글 (좁은 화면에서는 위아래로)
+  --------------------------------------------------------------- */
 
-  function leafEl(page, side) {
-    var leaf = document.createElement('div');
-    leaf.className = 'leaf ' + side;
+  function artEl(i) {
+    var wrap = document.createElement('div');
+    wrap.className = 'page-art';
 
-    var body = document.createElement('div');
-    body.className = 'leaf-body';
+    var img = document.createElement('img');
+    img.alt = pages[i].no + '쪽 그림';
+    img.decoding = 'async';
+    // 주소는 볼 때가 되면 넣는다 (한꺼번에 다 받지 않도록)
+    img.dataset.src = ART + pad3(pages[i].no) + '.jpg';
+    // 받기 전에는 세로 그림 자리만 잡아 두고, 받고 나면 원본 비율을 그대로 쓴다
+    // (가로로 그린 쪽도 있어서 비율을 고정하지 않는다)
+    img.addEventListener('load', function () { wrap.classList.add('is-loaded'); });
+    img.addEventListener('error', function () { wrap.classList.add('is-missing'); });
 
-    if (!page) {
-      leaf.classList.add('is-blank');
-      leaf.appendChild(body);
-      return leaf;
-    }
+    wrap.appendChild(img);
+    art[i] = img;
+    return wrap;
+  }
 
-    leaf.classList.add('is-' + page.kind);
+  function textEl(page) {
+    var box = document.createElement('div');
+    box.className = 'page-text';
+
+    // 글은 안쪽 상자에 담아 가운데에 앉히고, 쪽 번호는 늘 맨 아래에 둔다
+    var inner = document.createElement('div');
+    inner.className = 'page-text-inner';
 
     page.blocks.forEach(function (b) {
       var node;
@@ -108,36 +123,35 @@
       else if (b.type === 'verse') { node = document.createElement('p'); node.className = 'verse'; }
       else { node = document.createElement('p'); }
       node.textContent = b.text;
-      body.appendChild(node);
+      inner.appendChild(node);
     });
+    box.appendChild(inner);
 
-    var foot = document.createElement('div');
-    foot.className = 'leaf-foot';
-    foot.textContent = page.kind === 'cover' ? '' : String(page.no);
-
-    leaf.appendChild(body);
-    leaf.appendChild(foot);
-    return leaf;
+    if (page.kind !== 'cover') {
+      var foot = document.createElement('p');
+      foot.className = 'page-no';
+      foot.textContent = String(page.no);
+      box.appendChild(foot);
+    }
+    return box;
   }
 
   function build() {
-    sheetCount = Math.ceil(pages.length / 2);
-    el.spread.innerHTML = '';
-    sheets = [];
+    el.pages.innerHTML = '';
+    views = [];
 
-    for (var i = 0; i < sheetCount; i++) {
-      var sheet = document.createElement('div');
-      sheet.className = 'sheet';
-      sheet.dataset.index = String(i);
-      sheet.appendChild(leafEl(pages[i * 2] || null, 'front'));
-      sheet.appendChild(leafEl(pages[i * 2 + 1] || null, 'back'));
-      el.spread.appendChild(sheet);
-      sheets.push(sheet);
-    }
+    pages.forEach(function (page, i) {
+      var view = document.createElement('article');
+      view.className = 'page is-' + page.kind;
+      view.appendChild(artEl(i));
+      view.appendChild(textEl(page));
+      el.pages.appendChild(view);
+      views.push(view);
+    });
 
-    el.total.textContent = pages.length;
-    el.progress.setAttribute('aria-valuemax', String(pages.length));
     buildToc();
+    el.total.textContent = String(pages.length);
+    el.progress.setAttribute('aria-valuemax', String(pages.length));
     apply();
   }
 
@@ -148,10 +162,9 @@
       // 표지는 제목을, 장 표제지는 작은 제목을 목차 이름으로 쓴다
       var want = p.kind === 'cover' ? 'title' : 'sub';
       var head = p.blocks.filter(function (b) { return b.type === want; });
-      var label = head.length ? head[0].text : '표지';
       var b = document.createElement('button');
       b.type = 'button';
-      b.textContent = label;
+      b.textContent = head.length ? head[0].text : '표지';
       b.dataset.page = String(i);
       b.addEventListener('click', function () { goToPage(i); });
       el.toc.appendChild(b);
@@ -160,77 +173,48 @@
 
   /* ---------- 상태 반영 ---------- */
 
-  // 장을 k번 넘긴 상태에서 왼쪽/오른쪽에 놓이는 지면의 인덱스
-  function leftIndex(k)  { return k * 2 - 1; }
-  function rightIndex(k) { return k * 2; }
-
-  // 마지막 지면이 오른쪽에 남도록 넘길 수 있는 최대치
-  function maxTurned() { return Math.ceil((pages.length - 1) / 2); }
+  function loadArtAround() {
+    var from = Math.max(0, cur - PRELOAD);
+    var to = Math.min(pages.length - 1, cur + PRELOAD);
+    for (var i = from; i <= to; i++) {
+      var img = art[i];
+      if (img && img.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; }
+    }
+  }
 
   function apply() {
-    var mobile = isMobile();
-
-    sheets.forEach(function (sheet, i) {
-      sheet.classList.toggle('flipped', i < turned);
-      sheet.style.zIndex = String(i < turned ? i + 1 : sheetCount - i + 1);
-
-      var front = sheet.querySelector('.leaf.front');
-      var back = sheet.querySelector('.leaf.back');
-
-      if (mobile) {
-        var isActive = Math.floor(mPage / 2) === i;
-        sheet.classList.toggle('m-active', isActive);
-        front.classList.toggle('m-show', isActive && mPage % 2 === 0);
-        back.classList.toggle('m-show', isActive && mPage % 2 === 1);
-      } else {
-        sheet.classList.remove('m-active');
-        front.classList.remove('m-show');
-        back.classList.remove('m-show');
-      }
+    views.forEach(function (view, i) {
+      var on = i === cur;
+      view.classList.toggle('is-current', on);
+      view.setAttribute('aria-hidden', String(!on));
     });
 
-    var li = leftIndex(turned), ri = rightIndex(turned);
-    var hasLeft = li >= 0 && li < pages.length;
-    var hasRight = ri >= 0 && ri < pages.length;
+    el.label.textContent = String(cur + 1);
+    el.bar.style.width = ((cur + 1) / pages.length * 100) + '%';
+    el.progress.setAttribute('aria-valuenow', String(cur + 1));
 
-    // 한 쪽만 있을 때는 펼친 책을 가운데로 옮긴다
-    el.spread.classList.toggle('at-start', !mobile && !hasLeft);
-    el.spread.classList.toggle('at-end', !mobile && !hasRight);
-
-    var label;
-    if (mobile) label = String(mPage + 1);
-    else if (hasLeft && hasRight) label = (li + 1) + '–' + (ri + 1);
-    else label = String((hasRight ? ri : li) + 1);
-
-    var progressed = mobile ? mPage + 1 : (hasRight ? ri + 1 : li + 1);
-    el.label.textContent = label;
-    el.bar.style.width = (progressed / pages.length * 100) + '%';
-    el.progress.setAttribute('aria-valuenow', String(progressed));
-
-    el.prev.disabled = mobile ? mPage === 0 : turned === 0;
-    el.next.disabled = mobile ? mPage >= pages.length - 1 : turned >= maxTurned();
+    el.prev.disabled = cur === 0;
+    el.next.disabled = cur >= pages.length - 1;
 
     Array.prototype.forEach.call(el.toc.children, function (b) {
-      var p = parseInt(b.dataset.page, 10);
-      var on = mobile ? p === mPage : (p === li || p === ri);
-      b.setAttribute('aria-current', String(on));
+      b.setAttribute('aria-current', String(parseInt(b.dataset.page, 10) === cur));
     });
 
-    if (history.replaceState) history.replaceState(null, '', '#p' + progressed);
+    loadArtAround();
+    if (history.replaceState) history.replaceState(null, '', '#p' + (cur + 1));
   }
 
   function step(d) {
-    if (isMobile()) mPage = Math.max(0, Math.min(pages.length - 1, mPage + d));
-    else turned = Math.max(0, Math.min(maxTurned(), turned + d));
+    var next = Math.max(0, Math.min(pages.length - 1, cur + d));
+    if (next === cur) return;
+    cur = next;
     apply();
   }
 
   function goToPage(i) {
-    i = Math.max(0, Math.min(pages.length - 1, i));
-    mPage = i;
-    turned = i === 0 ? 0 : Math.min(maxTurned(), Math.floor((i + 1) / 2));
+    cur = Math.max(0, Math.min(pages.length - 1, i));
     apply();
-    el.book.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    el.pages.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
   /* ---------- 조작 ---------- */
@@ -244,29 +228,19 @@
     else if (e.key === 'ArrowRight') { step(1); }
   });
 
-  // 지면 좌/우를 눌러 넘기기 (글을 읽는 중 스크롤과 겹치지 않도록 여백만)
-  el.book.addEventListener('click', function (e) {
-    if (e.target.closest('.leaf-body')) return;
-    var r = el.book.getBoundingClientRect();
-    step(e.clientX - r.left < r.width / 2 ? -1 : 1);
-  });
-
-  // 터치 스와이프
-  var tx = null;
-  el.book.addEventListener('touchstart', function (e) { tx = e.changedTouches[0].clientX; }, { passive: true });
-  el.book.addEventListener('touchend', function (e) {
+  // 터치 스와이프 (세로로 읽으려고 움직인 것은 넘기지 않는다)
+  var tx = null, ty = null;
+  el.pages.addEventListener('touchstart', function (e) {
+    tx = e.changedTouches[0].clientX;
+    ty = e.changedTouches[0].clientY;
+  }, { passive: true });
+  el.pages.addEventListener('touchend', function (e) {
     if (tx === null) return;
     var dx = e.changedTouches[0].clientX - tx;
-    if (Math.abs(dx) > 45) step(dx < 0 ? 1 : -1);
-    tx = null;
+    var dy = e.changedTouches[0].clientY - ty;
+    if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+    tx = ty = null;
   }, { passive: true });
-
-  var mq = window.matchMedia(MOBILE);
-  (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(function () {
-    if (isMobile()) mPage = Math.max(0, Math.min(pages.length - 1, rightIndex(turned)));
-    else turned = mPage === 0 ? 0 : Math.min(maxTurned(), Math.floor((mPage + 1) / 2));
-    apply();
-  });
 
   /* ---------- 시작 ---------- */
 
@@ -281,11 +255,10 @@
 
       pages = parse(raw);
       if (!pages.length) throw new Error('empty');
+      if (m) cur = Math.max(0, Math.min(pages.length - 1, parseInt(m[1], 10) - 1));
       build();
-
-      if (m) goToPage(parseInt(m[1], 10) - 1);
     })
     .catch(function () {
-      el.spread.innerHTML = '<div class="leaf front"><div class="leaf-body"><p>본문을 불러오지 못했습니다.</p></div></div>';
+      el.pages.innerHTML = '<article class="page is-current"><div class="page-text"><p>본문을 불러오지 못했습니다.</p></div></article>';
     });
 })();

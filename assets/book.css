@@ -1,11 +1,12 @@
 /* ==========================================================================
-   나의 이야기 — 넘겨 읽는 책
+   나의 이야기 — 그림과 글
+   1쪽은 표지, 2쪽부터는 왼쪽 그림 / 오른쪽 글
    style.css 의 토큰을 그대로 쓴다
    ========================================================================== */
 
 .book-page { background: var(--bg); }
 
-.book-main { padding: calc(var(--header-h-sticky) + 56px) 0 96px; }
+.book-main { padding: calc(var(--header-h-sticky) + 48px) 0 96px; }
 
 /* ---------- 머리말 ---------- */
 
@@ -45,170 +46,167 @@
   padding-inline: var(--pad);
 }
 
-.book {
-  position: relative;
+.pages {
+  width: min(1000px, 100%);
   margin-inline: auto;
-  width: min(1040px, 100%);
-  aspect-ratio: 16 / 11;
-  perspective: 2600px;
-  outline: none;
 }
 
-.book-spread {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transition: transform .5s var(--ease);
+/* 한 번에 한 쪽만 보여 준다 */
+.page { display: none; }
+
+.page.is-current {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(20px, 3.4vw, 44px);
+  align-items: stretch;         /* 글 칸이 그림 높이에 맞춰 늘어난다 */
+  animation: page-in .35s var(--ease) both;
 }
 
-/* 한 쪽만 펼쳐졌을 때는 가운데로 */
-.book-spread.at-start { transform: translateX(-25%); }
-.book-spread.at-end   { transform: translateX(25%); }
-
-/* 책등 그림자 */
-.book-spread::before {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 2%;
-  bottom: 2%;
-  width: 34px;
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .09) 42%, rgba(0, 0, 0, .16) 50%, rgba(0, 0, 0, .09) 58%, rgba(0, 0, 0, 0) 100%);
-  z-index: 60;
-  pointer-events: none;
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
 }
 
-/* ---------- 장(sheet) ---------- */
+/* ---------- 그림 ---------- */
 
-.sheet {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 50%;
-  height: 100%;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  transition: transform .85s var(--ease);
-}
-
-.sheet.flipped { transform: rotateY(-180deg); }
-
-.leaf {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  background: var(--white);
-  border-radius: 0 var(--r-sm) var(--r-sm) 0;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, .13);
+.page-art {
+  position: relative;
+  align-self: start;            /* 그림은 제 비율대로 (늘어나지 않는다) */
+  border-radius: var(--r-lg);
   overflow: hidden;
+  background: #f2efea;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .12);
+  aspect-ratio: 3 / 4;          /* 받기 전 자리 잡아 두기 */
+}
+
+/* 다 받고 나면 그림 본래 비율대로 (가로로 그린 쪽도 있다) */
+.page-art.is-loaded { aspect-ratio: auto; }
+
+.page-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  opacity: 0;
+  transition: opacity .4s ease;
+}
+.page-art img[src] { opacity: 1; }
+
+/* 그림을 못 받았을 때는 자리만 조용히 남긴다 */
+.page-art.is-missing img { display: none; }
+
+/* ---------- 글 ---------- */
+
+.page-text {
   display: flex;
   flex-direction: column;
+  background: var(--white);
+  border-radius: var(--r-lg);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, .08);
+  padding: clamp(28px, 3.4vw, 46px) clamp(24px, 3.2vw, 44px);
 }
 
-.leaf.back {
-  transform: rotateY(180deg);
-  border-radius: var(--r-sm) 0 0 var(--r-sm);
-  box-shadow: 0 10px 34px rgba(0, 0, 0, .1);
-}
-
-/* 안쪽 접힘 음영 */
-.leaf::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 26px;
-  pointer-events: none;
-}
-.leaf.front::after { left: 0;  background: linear-gradient(90deg, rgba(0, 0, 0, .07), rgba(0, 0, 0, 0)); }
-.leaf.back::after  { right: 0; background: linear-gradient(270deg, rgba(0, 0, 0, .07), rgba(0, 0, 0, 0)); }
-
-/* ---------- 지면 ---------- */
-
-.leaf-body {
+/* 글이 짧으면 가운데에, 길면 위에서부터 */
+.page-text-inner {
   flex: 1;
-  padding: clamp(28px, 4.2%, 56px) clamp(26px, 5%, 58px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.leaf-foot {
-  flex: none;
-  padding: 0 clamp(26px, 5%, 58px) 20px;
-  font-size: 12px;
-  color: #b3aca6;
-  letter-spacing: .08em;
-}
-.leaf.front .leaf-foot { text-align: right; }
-.leaf.back  .leaf-foot { text-align: left; }
+.page-text p:last-child { margin-bottom: 0; }
 
-.leaf p {
-  font-size: clamp(13.5px, 1.15vw, 15.5px);
+.page-text p {
+  font-size: clamp(15px, 1.15vw, 17px);
   font-weight: 300;
   line-height: 1.95;
   color: var(--text-2);
-  margin-bottom: 1.05em;
+  margin-bottom: 1.15em;
 }
-.leaf p:last-child { margin-bottom: 0; }
 
-.leaf .verse {
-  margin: 1.4em 0;
+.page-text .verse {
+  margin: 1.5em 0;
   padding-left: 1.1em;
   border-left: 2px solid var(--accent);
   font-weight: 400;
   color: var(--text);
   white-space: pre-line;
-  line-height: 1.9;
+  line-height: 1.95;
 }
 
-/* 표지 / 장 표제지 */
-.leaf.is-cover .leaf-body,
-.leaf.is-chapter .leaf-body {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
+.page-no {
+  flex: none;
+  margin: 28px 0 0 !important;
+  text-align: right;
+  font-size: 12px !important;
+  color: #b3aca6 !important;
+  letter-spacing: .08em;
 }
 
-.leaf .p-title {
-  font-size: clamp(30px, 3.6vw, 50px);
-  font-weight: 800;
-  letter-spacing: -.035em;
-  line-height: 1.15;
-  color: var(--text);
-}
+/* ---------- 장 표제지 ---------- */
 
-.leaf .p-sub {
-  font-size: clamp(15px, 1.6vw, 21px);
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-top: 14px;
-}
-
-.leaf.is-cover .p-title { margin-bottom: 4px; }
-.leaf.is-cover::before,
-.leaf.is-chapter::before {
-  content: "";
-  position: absolute;
-  left: clamp(26px, 5%, 58px);
-  top: 50%;
-  width: 54px;
-  height: 3px;
-  background: var(--accent);
-  transform: translateY(-88px);
-}
-
-.leaf.is-chapter .p-sub {
-  font-size: clamp(22px, 2.8vw, 36px);
+.page.is-chapter .p-sub {
+  font-size: clamp(24px, 2.8vw, 36px);
   font-weight: 700;
   color: var(--text);
   letter-spacing: -.03em;
-  margin-top: 0;
+  margin: 0;
 }
 
-.leaf.is-blank { background: #fbfaf8; }
+.page.is-chapter .p-sub::before {
+  content: "";
+  display: block;
+  width: 54px;
+  height: 3px;
+  background: var(--accent);
+  margin-bottom: 22px;
+}
+
+
+
+/* ---------- 표지 ---------- */
+
+.page.is-cover.is-current {
+  grid-template-columns: minmax(0, 1fr);
+  width: min(560px, 100%);
+  margin-inline: auto;
+  position: relative;
+}
+
+.page.is-cover .page-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .34) 48%, rgba(0, 0, 0, .78));
+  border-radius: 0 0 var(--r-lg) var(--r-lg);
+  box-shadow: none;
+  padding: 110px clamp(24px, 5%, 36px) clamp(26px, 5%, 34px);
+}
+
+.page.is-cover .p-title {
+  font-size: clamp(30px, 5vw, 44px);
+  font-weight: 800;
+  letter-spacing: -.035em;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .35);
+}
+
+.page.is-cover .p-sub {
+  font-size: clamp(14px, 1.8vw, 17px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, .9);
+  margin: 0;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, .35);
+}
+
+.page.is-cover .p-title::before {
+  content: "";
+  display: block;
+  width: 54px;
+  height: 3px;
+  background: var(--accent);
+  margin-bottom: 18px;
+}
 
 /* ---------- 조작부 ---------- */
 
@@ -251,7 +249,7 @@
   width: 0;
   background: var(--accent);
   border-radius: 999px;
-  transition: width .5s var(--ease);
+  transition: width .4s var(--ease);
 }
 
 .progress-label {
@@ -265,7 +263,7 @@
 /* ---------- 목차 ---------- */
 
 .toc {
-  margin-top: 56px;
+  margin-top: 48px;
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -305,38 +303,25 @@
 .nav-link:hover { background: var(--bg-2); color: var(--text); }
 .nav-link.is-current { background: var(--btn-bg); color: #fff; }
 
-/* ---------- 모바일: 한 장씩 ---------- */
+/* ---------- 좁은 화면: 그림 아래 글 ---------- */
 
-@media (max-width: 860px) {
-  .book-main { padding-top: calc(var(--header-h-sticky) + 32px); }
-  .book { aspect-ratio: 3 / 4; perspective: none; }
-  .book-spread::before { display: none; }
+@media (max-width: 700px) {
+  .book-main { padding-top: calc(var(--header-h-sticky) + 28px); }
 
-  .sheet {
-    left: 0;
-    width: 100%;
-    transform: none !important;
-    transition: opacity .35s ease, transform .35s var(--ease);
-    opacity: 0;
-    pointer-events: none;
+  .page.is-current {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
   }
-  .sheet.m-active { opacity: 1; pointer-events: auto; z-index: 5 !important; }
 
-  .leaf {
-    border-radius: var(--r-sm);
-    transform: none !important;
-    opacity: 0;
-    pointer-events: none;
-  }
-  .leaf.m-show { opacity: 1; pointer-events: auto; }
-  .leaf::after { display: none; }
-  .leaf .leaf-foot { text-align: center !important; }
+  .page.is-cover.is-current { width: 100%; }
 
   .controls { gap: 14px; margin-top: 28px; }
-  .progress-wrap { width: 100%; }
+  /* 버튼 두 개 사이의 남는 폭만 차지하게 해 가로로 넘치지 않도록 한다 */
+  .progress-wrap { width: auto; flex: 1; min-width: 0; }
   .toc { margin-top: 36px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sheet { transition: none; }
+  .page.is-current { animation: none; }
+  .page-art img { transition: none; }
 }
